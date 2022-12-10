@@ -1,0 +1,13 @@
+# from toolings
+.rebel_readline_history
+.cpcache/
+.clj-kondo/
+.lsp/
+.calva
+
+# builds
+target/
+hello/
+
+# macos
+.DS_Store

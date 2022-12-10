@@ -1,0 +1,26 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "figwheel",
+            "type": "shell",
+            "command": "clojure -M:fig:build",
+            "windows": {
+                "command": "powershell -command clj -M:fig:build"
+            }
+        },
+        {
+            "label": "tailwind",
+            "type": "shell",
+            "command": "tailwind -i ./src/input.css -o ./resources/public/css/style.css --watch"
+        },
+        {
+            "label": "start dev",
+            "dependsOn": [
+                "tailwind",
+                "figwheel"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}
