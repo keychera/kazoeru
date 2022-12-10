@@ -10,18 +10,23 @@
 
 (defn kazoeru []
   (let [{:keys [number counter] :as current-state} @state]
-    [:div [:h1 "数えましょう！"]
-     [:div
-      [:input {:type "text"
-               :value (str number)
-               :placeholder "何匹？"
+    [:div {:class "h-screen p-6 bg-neutral-900"}
+     [:h1  {:class "mb-0 text-xl text-slate-100"} "数えましょう！"]
+     [:h2 {:class "mb-2 text-xs text-neutral-400"} "これどうやっていうの？"]
+     [:div {:class "flex pl-2 py-1 mb-3 bg-neutral-800"}
+      [:input {:class "w-full my-auto outline-none text-slate-100 bg-transparent"
+               :type "number"
+               :value (str number) :placeholder "何匹？"
                :on-change #(change-state :number %)}]
-      [:button {:class "w-6 h-6 px-1.5"}
-       [:img {:class "h-4" :src "./img/xmark.svg" :alt "clear-text"}]]
-      [:button {:class "w-6 h-6"}
-       [:svg {:xmlns "http://www.w3.org/2000/svg" :width "24" :height "24" :stroke "#000" :font-size "20" :overflow "visible"}
-        [:text {:font-family "Roboto Condensed" :x "0" :y "24"} counter]]]]
-     [:h2 {} current-state]]))
+      [:button {:class "mx-2 my-auto w-3 h-3"}
+       [:svg {:class "fill-slate-100"
+              :xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 24 24"}
+        [:use {:href "./img/xmark.svg#xmark"}]]]
+      [:button {:class "mx-2 my-auto w-6 h-6"}
+       [:svg {:class "fill-slate-100" :xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 24 24" :font-size "24" :overflow "visible"}
+        [:text {:x "50%" :y "55%"
+                :dominant-baseline "middle" :text-anchor "middle"} counter]]]]
+     [:h2 {:class "text-lg text-slate-100"} current-state]]))
 
 ;; the Edge
 (defn get-app-element []
