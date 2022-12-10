@@ -7,12 +7,14 @@
             "command": "clojure -M:fig:build",
             "windows": {
                 "command": "powershell -command clj -M:fig:build"
-            }
+            },
+            "problemMatcher": []
         },
         {
             "label": "tailwind",
             "type": "shell",
-            "command": "tailwind -i ./src/input.css -o ./resources/public/css/style.css --watch"
+            "command": "tailwind -i ./src/input.css -o ./resources/public/css/style.css --watch",
+            "problemMatcher": []
         },
         {
             "label": "start dev",

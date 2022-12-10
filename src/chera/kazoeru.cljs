@@ -20,9 +20,8 @@
        [:img {:class "h-4" :src "./img/xmark.svg" :alt "clear-text"}]]
       [:button {:class "w-6 h-6"}
        [:svg {:xmlns "http://www.w3.org/2000/svg" :width "24" :height "24" :stroke "#000" :font-size "20" :overflow "visible"}
-                [:text {:font-family "Roboto Condensed" :x "0" :y "24"} counter]]]]
-     [:h2 {} current-state]
-     ]))
+        [:text {:font-family "Roboto Condensed" :x "0" :y "24"} counter]]]]
+     [:h2 {} current-state]]))
 
 ;; the Edge
 (defn get-app-element []
