@@ -40,6 +40,6 @@
 (defn west-arabic->japanese [num]
   (as-> (str num) it
     (reverse it) (map-indexed vector it)
-    (map (fn [[e juu]] (apply (e-map e) [juu])) it)
+    (map (fn [[e juu]] (apply (get e-map e (constantly "?")) [juu])) it)
     (reduce #(str %2 %1) it)
     (if (nil? it) "ゼロ" it))) ;; TODO better exceptions handling later
