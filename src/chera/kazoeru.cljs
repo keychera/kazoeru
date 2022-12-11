@@ -1,5 +1,5 @@
 (ns chera.kazoeru
-  (:require [chera.num-converter :refer [west-arabic->japanese]]
+  (:require [chera.num-converter :refer [westarab->japanese]]
             [goog.dom :as gdom]
             [reagent.core :as r]
             [reagent.dom :as rdom]))
@@ -9,8 +9,8 @@
 (defn change-state [key val] (swap! state #(-> % (assoc key (-> val .-target .-value)))))
 
 (defn kazoeru []
-  (let [{:keys [number counter] :as current-state} @state
-        jp-number (or (west-arabic->japanese number) "invalid")]
+  (let [{:keys [number counter]} @state
+        jp-number (or (westarab->japanese number) "invalid")]
     [:div {:class "h-screen p-6 bg-neutral-900"}
      [:h1  {:class "mb-0 text-xl text-slate-100"} "数えましょう！"]
      [:h2 {:class "mb-2 text-xs text-neutral-400"} "これどうやっていうの？"]
