@@ -8,12 +8,14 @@
 (def special-2digit {'([17 \1] [16 \0]) {:yomi "じゅっきょう"}
                      '([13 \1] [12 \0]) {:yomi "じゅっちょう"}})
 
+(def sen {[3 \1]  {:yomi "せん"}})
+
 (def special-1digit {[1 \1]  {:yomi "じゅう"}
                      [2 \1]  {:yomi "ひゃく"}
                      [2 \3]  {:yomi "さんびゃく"}
                      [2 \6]  {:yomi "ろっぴゃく"}
                      [2 \8]  {:yomi "はっぴゃく"}
-                     [3 \1]  {:yomi "せん"} ;; this needs clarification
+                     [3 \1]  {:yomi "いっせん"}
                      [3 \3]  {:yomi "さんぜん"}
                      [3 \8]  {:yomi "はっせん"}
                      [12 \1] {:yomi "いっちょう"}
@@ -60,6 +62,7 @@
 
 (defn westarab->japanese [num]
   (cond
+    (< 20 (count num)) "numbers more than 10e20 - 1 are not mapped yet"
     (= num "0")  "ゼロ"
     :else (let [size (-> num count (- 1))]
             (->> num
@@ -67,6 +70,7 @@
                  (partition 2 1 [:last])
                  (map (handle-not-yomi special-2digit))
                  (map (handle-not-yomi first))
+                 (map (handle-not-yomi sen))
                  (map (handle-not-yomi normalize-order))
                  (map (handle-not-yomi special-1digit))
                  (map (handle-not-yomi digit->yomi))
