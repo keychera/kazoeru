@@ -19,14 +19,18 @@
                :type "number"
                :value (str number) :placeholder "何匹？"
                :on-change #(change-state :number %)}]
-      [:button {:class "mx-2 my-auto w-3 h-3"}
-       [:svg {:class "fill-slate-100"
-              :xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 24 24"}
-        [:use {:href "./img/xmark.svg#xmark"}]]]
-      [:button {:class "mx-2 my-auto w-6 h-6"}
+      [:div {:class "group flex"}
+       [:button {:class "mx-2 my-auto w-3 h-3"}
+        [:svg {:class "fill-slate-100"
+               :xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 24 24"}
+         [:use {:href "./img/xmark.svg#xmark"}]]]
+       [:div {:class "absolute mt-6 text-slate-100 scale-0 group-hover:scale-100 transition-all"} "WIP"]]
+      [:div {:class "group flex"}
+       [:button {:class "mx-2 my-auto w-6 h-6"}
        [:svg {:class "fill-slate-100" :xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 24 24" :font-size "24" :overflow "visible"}
         [:text {:x "50%" :y "55%"
-                :dominant-baseline "middle" :text-anchor "middle"} counter]]]]
+                :dominant-baseline "middle" :text-anchor "middle"} counter]]]
+       [:div {:class "absolute mx-1.5 mt-6 text-slate-100 scale-0 group-hover:scale-100 transition-all"} "WIP"]]]
      [:h2 {:class "text-lg text-slate-100"} jp-number]]))
 
 ;; the Edge
