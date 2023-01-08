@@ -53,39 +53,38 @@
              (conj acc yomi)
              (recur (remove-last-digit num) (inc order)
                     (conj acc yomi)))))
-       (reduce str)))
+       (reduce #(str %2 %1))))
 
 ;; handling every log10eN, data struct {:log10e4 a :num b}, b is 0..10000
 
 (defn special-ld-yomi
   "special l(ast) d(igit) on certain l(og10)e4 order"
   [log10e4 num]
-  (let [handle (fn [tail] (fn [ld] {:num (- num ld)  :tail tail}))]
+  (let [handle (fn [tail] (fn [ld] {:num (- num ld) :special-num ld :tail tail}))]
     (condp (fn [[le4' ld] [le4 num]]
              (when (and (= le4 le4') (is-last-digit? num ld)) ld))
            [log10e4 num]
-      [3  1] :>> (handle "いっちょう")
-      [3  8] :>> (handle "はっちょう")
-      [3 10] :>> (handle "じゅっちょう")
-      [4  1] :>> (handle "いっきょう")
-      [4  6] :>> (handle "ろっきょう")
-      [4  8] :>> (handle "はっきょう")
-      [4 10] :>> (handle "じゅっきょう")
+      [3  1] :>> (handle {:yomi "いっちょう" :kanji "兆"})
+      [3  8] :>> (handle {:yomi "はっちょう" :kanji "兆"})
+      [3 10] :>> (handle {:yomi "じゅっちょう" :kanji "兆"})
+      [4  1] :>> (handle {:yomi "いっきょう" :kanji "京"})
+      [4  6] :>> (handle {:yomi "ろっきょう" :kanji "京"})
+      [4  8] :>> (handle {:yomi "はっきょう" :kanji "京"})
+      [4 10] :>> (handle {:yomi "じゅっきょう" :kanji "京"})
       nil)))
 
 (def log10e4->kango
-  {4 "きょう"
-   3 "ちょう"
-   2 "おく"
-   1 "まん"})
+  {4 {:yomi "きょう" :kanji "京"}
+   3 {:yomi "ちょう" :kanji "兆"}
+   2 {:yomi "おく" :kanji "億"}
+   1 {:yomi "まん" :kanji "万"}})
 
 (defn handle-log10e4-yomi [{:keys [log10e4 num] :as data}]
   (or (when (= num 0) data)
       (some-> (special-ld-yomi log10e4 num)
               (as-> special-case
                     (merge data special-case)))
-      (assoc data :tail
-             (log10e4->kango log10e4))))
+      (assoc data :tail (log10e4->kango log10e4))))
 
 (defn break-log10e4 [inp]
   (loop [num inp
@@ -98,9 +97,12 @@
         (recur remaining-order accumulated)))))
 
 (defn westarab->japanese [num]
-  (or (when (= num "0") "ゼロ")
-      (->> num long break-log10e4
-           (map handle-log10e4-yomi)
-           (map #(update % :num westarabic-u10000->yomi))
-           (map #(str (:num %) (:tail %)))
-           (reduce str))))
+  (or (when (= num "0") {:raw num :reading "ゼロ" :num+kanji num})
+      (as-> num it
+        (->> it long break-log10e4
+             (map handle-log10e4-yomi)
+             (map #(assoc % :reading (westarabic-u10000->yomi (:num %)))))
+        {:reading (->> it (map #(str (:reading %) (-> % :tail :yomi))) (reduce #(str %2 %1)))
+         :num+kanji (->> it (map #(let [orig-num (+ (:num %) (:special-num %))]
+                                    (when-not (= 0 orig-num)
+                                      (str orig-num (-> % :tail :kanji))))) (reduce #(str %2 %1)))})))
