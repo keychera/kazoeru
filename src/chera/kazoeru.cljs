@@ -9,8 +9,9 @@
 (defn change-state [key val] (swap! state #(-> % (assoc key (-> val .-target .-value)))))
 
 (defn kazoeru []
-  (let [{:keys [number counter]} @state
-        jp-number (or (westarab->japanese number) "invalid")]
+  (let [{:keys [number counter]} @state 
+        {:keys [reading num+kanji] 
+         :or {reading "invalid" num+kanji ""}} (westarab->japanese number)]
     [:div {:class "h-screen p-6 bg-neutral-900"}
      [:h1  {:class "mb-0 text-xl text-slate-100"} "数えましょう！"]
      [:h2 {:class "mb-2 text-xs text-neutral-400"} "これどうやっていうの？"]
@@ -31,7 +32,8 @@
         [:text {:x "50%" :y "55%"
                 :dominant-baseline "middle" :text-anchor "middle"} counter]]]
        [:div {:class "absolute mx-1.5 mt-6 text-slate-100 scale-0 group-hover:scale-100 transition-all"} "WIP"]]]
-     [:h2 {:class "text-lg text-slate-100"} jp-number]]))
+     [:h2 {:class "text-lg text-slate-100"} num+kanji]
+     [:h2 {:class "text-lg text-slate-100"} reading]]))
 
 ;; the Edge
 (defn get-app-element []
