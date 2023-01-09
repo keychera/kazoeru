@@ -1,7 +1,7 @@
 (ns chera.num-converter)
 
 ;; number conversion based on data/code from several sources
-;; currently only integer from 0 to 10e20 - 1, haven't made sure every exception yet
+;; currently only integer from 0 to 1e20 - 1, haven't made sure every exception yet
 ;; -> main source for now: https://www.tofugu.com/japanese/counting-in-japanese/
 ;; -> for cross checking some logic: https://github.com/Greatdane/Convert-Numbers-to-Japanese/blob/master/Convert-Numbers-to-Japanese.py
 
@@ -55,15 +55,15 @@
                     (conj acc yomi)))))
        (reduce #(str %2 %1))))
 
-;; handling every log10eN, data struct {:log10e4 a :num b}, b is 0..10000
+;; handling every log10eN, data struct {:log1e4 a :num b}, b is 0..10000
 
 (defn special-ld-yomi
   "special l(ast) d(igit) on certain l(og10)e4 order"
-  [log10e4 num]
+  [log1e4 num]
   (let [handle (fn [tail] (fn [ld] {:num (- num ld) :special-num ld :tail tail}))]
     (condp (fn [[le4' ld] [le4 num]]
              (when (and (= le4 le4') (is-last-digit? num ld)) ld))
-           [log10e4 num]
+           [log1e4 num]
       [3  1] :>> (handle {:yomi "いっちょう" :kanji "兆"})
       [3  8] :>> (handle {:yomi "はっちょう" :kanji "兆"})
       [3 10] :>> (handle {:yomi "じゅっちょう" :kanji "兆"})
@@ -73,36 +73,45 @@
       [4 10] :>> (handle {:yomi "じゅっきょう" :kanji "京"})
       nil)))
 
-(def log10e4->kango
+(def log1e4->kango
   {4 {:yomi "きょう" :kanji "京"}
    3 {:yomi "ちょう" :kanji "兆"}
    2 {:yomi "おく" :kanji "億"}
    1 {:yomi "まん" :kanji "万"}})
 
-(defn handle-log10e4-yomi [{:keys [log10e4 num] :as data}]
+(defn handle-log1e4-yomi [{:keys [log1e4 num] :as data}]
   (or (when (= num 0) data)
-      (some-> (special-ld-yomi log10e4 num)
+      (some-> (special-ld-yomi log1e4 num)
               (as-> special-case
                     (merge data special-case)))
-      (assoc data :tail (log10e4->kango log10e4))))
+      (assoc data :tail (log1e4->kango log1e4))))
 
-(defn break-log10e4 [inp]
+(defn break-log1e4 [inp]
   (loop [num inp
          acc []]
     (if (< (/ num 10000) 1)
-      (conj acc {:log10e4 (count acc) :num num})
+      (conj acc {:log1e4 (count acc) :num num})
       (let [first-order (rem num 10000)
             remaining-order (/ (- num first-order) 10000)
-            accumulated (conj acc {:log10e4 (count acc) :num first-order})]
+            accumulated (conj acc {:log1e4 (count acc) :num first-order})]
         (recur remaining-order accumulated)))))
 
-(defn westarab->japanese [num]
-  (or (when (= num "0") {:raw num :reading "ゼロ" :num+kanji num})
-      (as-> num it
-        (->> it long break-log10e4
-             (map handle-log10e4-yomi)
-             (map #(assoc % :reading (westarabic-u10000->yomi (:num %)))))
-        {:reading (->> it (map #(str (:reading %) (-> % :tail :yomi))) (reduce #(str %2 %1)))
-         :num+kanji (->> it (map #(let [orig-num (+ (:num %) (:special-num %))]
-                                    (when-not (= 0 orig-num)
-                                      (str orig-num (-> % :tail :kanji))))) (reduce #(str %2 %1)))})))
+
+(defn westarab->japanese [num-str]
+  (let [num (long num-str)]
+    (cond
+      (or (nil? num-str) (= "" num-str)) {:num+kanji "" :reading ""}
+      (= num-str "0") {:raw num :reading "ゼロ" :num+kanji num}
+      (not (re-matches #"^(\d+|\d+e\d+)$" num-str)) {:num+kanji "invalid number!" :reading ""}
+      (< num 0) {:num+kanji "does not support negative number yet"}
+      (> num 1e16) {:num+kanji "does not support number more than 1e16 - 1 yet"}
+      ;; bug on number > 1e16
+      :else (as-> num it
+              (->> it break-log1e4
+                   (map handle-log1e4-yomi)
+                   (map #(assoc % :reading (westarabic-u10000->yomi (:num %)))))
+              {:num num
+               :reading (->> it (map #(str (:reading %) (-> % :tail :yomi))) (reduce #(str %2 %1)))
+               :num+kanji (->> it (map #(let [orig-num (+ (:num %) (:special-num %))]
+                                          (when-not (= 0 orig-num)
+                                            (str orig-num (-> % :tail :kanji))))) (reduce #(str %2 %1)))}))))
