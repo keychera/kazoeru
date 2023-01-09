@@ -102,10 +102,11 @@
     (cond
       (or (nil? num-str) (= "" num-str)) {:num+kanji "" :reading ""}
       (= num-str "0") {:raw num :reading "ゼロ" :num+kanji num}
-      (not (re-matches #"^(\d+|\d+e\d+)$" num-str)) {:num+kanji "invalid number!" :reading ""}
+      (not (re-matches #"^(\d+|\d+\.?\d+e\d+)$" num-str)) {:num+kanji "invalid number or unsupported format!"}
       (< num 0) {:num+kanji "does not support negative number yet"}
       (> num 1e16) {:num+kanji "does not support number more than 1e16 - 1 yet"}
       ;; bug on number > 1e16
+      ;; bug cannot get all invalid val from input https://stackoverflow.com/q/40073053/8812880
       :else (as-> num it
               (->> it break-log1e4
                    (map handle-log1e4-yomi)
