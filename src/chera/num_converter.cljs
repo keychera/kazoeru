@@ -102,7 +102,7 @@
     (cond
       (or (nil? num-str) (= "" num-str)) {:num+kanji "" :reading ""}
       (= num-str "0") {:raw num :reading "ゼロ" :num+kanji num}
-      (not (re-matches #"^(\d+|\d+\.?\d+e\d+)$" num-str)) {:num+kanji "invalid number or unsupported format!"}
+      (not (re-matches #"^(\d+|\d+\.?\d?e\d+)$" num-str)) {:num+kanji "invalid number or unsupported format!"}
       (< num 0) {:num+kanji "does not support negative number yet"}
       (> num 1e16) {:num+kanji "does not support number more than 1e16 - 1 yet"}
       ;; bug on number > 1e16
