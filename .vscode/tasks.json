@@ -13,7 +13,7 @@
         {
             "label": "tailwind",
             "type": "shell",
-            "command": "tailwind -i ./src/input.css -o ./resources/public/css/style.css --watch",
+            "command": "tailwindcss -i ./src/input.css -o ./resources/public/css/style.css --watch",
             "problemMatcher": []
         },
         {
