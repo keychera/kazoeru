@@ -110,7 +110,7 @@
     (str/starts-with? num "-") {:num+kanji "does not support negative number yet!"}
     (str/includes? num ".") {:num+kanji "does not support decimals yet!"}
     (str/includes? num "e") {:num+kanji "does not support e notation yet!"}
-    (> (count num) max-inp) {:num+kanji (str "does support number more than 1e" max-inp " - 1 yet!")}
+    (> (count num) max-inp) {:num+kanji (str "does not support number more than 1e" max-inp " - 1 yet!")}
     (not (re-matches #"^\d+$" num)) {:num+kanji "invalid number or unsupported format!"}
       ;; bug cannot get all invalid val from input https://stackoverflow.com/q/40073053/8812880
     :else (as-> num it
