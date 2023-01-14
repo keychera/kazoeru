@@ -75,10 +75,14 @@
       nil)))
 
 (def log1e4->kango
-  {4 {:yomi "きょう" :kanji "京"}
+  {6 {:yomi "じょ" :kanji "𥝱"}
+   5 {:yomi "がい" :kanji "垓"}
+   4 {:yomi "きょう" :kanji "京"}
    3 {:yomi "ちょう" :kanji "兆"}
    2 {:yomi "おく" :kanji "億"}
    1 {:yomi "まん" :kanji "万"}})
+
+(def max-inp (-> (apply max (keys log1e4->kango)) (+ 1) (* 4)))
 
 (defn handle-log1e4-yomi [{:keys [log1e4 num] :as data}]
   (or (when (= num 0) data)
@@ -106,7 +110,7 @@
     (str/starts-with? num "-") {:num+kanji "does not support negative number yet!"}
     (str/includes? num ".") {:num+kanji "does not support decimals yet!"}
     (str/includes? num "e") {:num+kanji "does not support e notation yet!"}
-    (> (count num) 20) {:num+kanji "does support number more than 1e20 - 1 yet!"}
+    (> (count num) max-inp) {:num+kanji (str "does support number more than 1e" max-inp " - 1 yet!")}
     (not (re-matches #"^\d+$" num)) {:num+kanji "invalid number or unsupported format!"}
       ;; bug cannot get all invalid val from input https://stackoverflow.com/q/40073053/8812880
     :else (as-> num it
