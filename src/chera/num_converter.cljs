@@ -1,4 +1,5 @@
-(ns chera.num-converter)
+(ns chera.num-converter
+  (:require [clojure.string :as str]))
 
 ;; number conversion based on data/code from several sources
 ;; currently only integer from 0 to 1e20 - 1, haven't made sure every exception yet
@@ -74,10 +75,14 @@
       nil)))
 
 (def log1e4->kango
-  {4 {:yomi "きょう" :kanji "京"}
+  {6 {:yomi "じょ" :kanji "𥝱"}
+   5 {:yomi "がい" :kanji "垓"}
+   4 {:yomi "きょう" :kanji "京"}
    3 {:yomi "ちょう" :kanji "兆"}
    2 {:yomi "おく" :kanji "億"}
    1 {:yomi "まん" :kanji "万"}})
+
+(def max-inp (-> (apply max (keys log1e4->kango)) (+ 1) (* 4)))
 
 (defn handle-log1e4-yomi [{:keys [log1e4 num] :as data}]
   (or (when (= num 0) data)
@@ -87,32 +92,34 @@
       (assoc data :tail (log1e4->kango log1e4))))
 
 (defn break-log1e4 [inp]
-  (loop [num inp
+  (loop [^String num inp 
          acc []]
-    (if (< (/ num 10000) 1)
-      (conj acc {:log1e4 (count acc) :num num})
-      (let [first-order (rem num 10000)
-            remaining-order (/ (- num first-order) 10000)
-            accumulated (conj acc {:log1e4 (count acc) :num first-order})]
-        (recur remaining-order accumulated)))))
+    (let [digit (count num)]
+      (cond
+        (= inp "") nil
+        (<= digit 4) (conj acc {:log1e4 (count acc) :num (js/parseInt num)})
+        :else (let [first-order (subs num (- digit 4))
+                    remaining-order (subs num 0 (- digit 4))
+                    accumulated (conj acc {:log1e4 (count acc) :num (js/parseInt first-order)})]
+                (recur remaining-order accumulated))))))
 
-
-(defn westarab->japanese [num-str]
-  (let [num (long num-str)]
-    (cond
-      (or (nil? num-str) (= "" num-str)) {:num+kanji "" :reading ""}
-      (= num-str "0") {:raw num :reading "ゼロ" :num+kanji num}
-      (not (re-matches #"^(\d+|\d+\.?\d?e\d+)$" num-str)) {:num+kanji "invalid number or unsupported format!"}
-      (< num 0) {:num+kanji "does not support negative number yet"}
-      (> num 1e16) {:num+kanji "does not support number more than 1e16 - 1 yet"}
-      ;; bug on number > 1e16
+(defn westarab->japanese [^String num]
+  (cond
+    (or (nil? num) (= "" num)) {:num+kanji "" :reading ""}
+    (= num "0") {:raw num :reading "ゼロ" :num+kanji num}
+    (str/starts-with? num "-") {:num+kanji "does not support negative number yet!"}
+    (str/includes? num ".") {:num+kanji "does not support decimals yet!"}
+    (str/includes? num "e") {:num+kanji "does not support e notation yet!"}
+    (> (count num) max-inp) {:num+kanji (str "does support number more than 1e" max-inp " - 1 yet!")}
+    (not (re-matches #"^\d+$" num)) {:num+kanji "invalid number or unsupported format!"}
       ;; bug cannot get all invalid val from input https://stackoverflow.com/q/40073053/8812880
-      :else (as-> num it
-              (->> it break-log1e4
-                   (map handle-log1e4-yomi)
-                   (map #(assoc % :reading (westarabic-u10000->yomi (:num %)))))
-              {:num num
-               :reading (->> it (map #(str (:reading %) (-> % :tail :yomi))) (reduce #(str %2 %1)))
-               :num+kanji (->> it (map #(let [orig-num (+ (:num %) (:special-num %))]
-                                          (when-not (= 0 orig-num)
-                                            (str orig-num (-> % :tail :kanji))))) (reduce #(str %2 %1)))}))))
+    :else (as-> num it
+            (break-log1e4 it)
+            (map handle-log1e4-yomi it)
+            (map (fn [res] (assoc res :reading (westarabic-u10000->yomi (:num res)))) it)
+            {:num num
+             :reading (->> it (map #(str (:reading %) (-> % :tail :yomi))) (reduce #(str %2 %1)))
+             :num+kanji (->> it (map (fn [{:keys [num special-num] :as element}]
+                                       (let [orig-num (+ num special-num)]
+                                         (when-not (= 0 orig-num)
+                                           (str orig-num (-> element :tail :kanji)))))) (reduce #(str %2 %1)))})))
